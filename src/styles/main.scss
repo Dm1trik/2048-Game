@@ -84,6 +84,7 @@ body {
 
 .game-field {
   background: #bbada0;
+  touch-action: none;
   border-spacing: 10px;
   border-radius: 5px;
 }

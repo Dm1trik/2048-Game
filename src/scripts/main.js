@@ -6,10 +6,22 @@ const game = new Game();
 const fieldCell = document.querySelectorAll('.field-cell');
 const gameScore = document.querySelector('.game-score');
 const startBtn = document.querySelector('.start');
+const gameField = document.querySelector('.game-field');
 
 const messageLose = document.querySelector('.message-lose');
 const messageWin = document.querySelector('.message-win');
 const messageStart = document.querySelector('.message-start');
+
+const KEY_DIRECTIONS = {
+  ArrowLeft: 'left',
+  ArrowRight: 'right',
+  ArrowUp: 'up',
+  ArrowDown: 'down',
+};
+const SWIPE_THRESHOLD = 30;
+
+let touchStartX = 0;
+let touchStartY = 0;
 
 function render() {
   const state = game.getState();
@@ -74,28 +86,60 @@ startBtn.addEventListener('click', () => {
   render();
 });
 
-document.addEventListener('keydown', keyEvent => {
-  const gameKeys = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'];
-
-  if (gameKeys.includes(keyEvent.key)) {
-    keyEvent.preventDefault();
-  }
-
-  if (keyEvent.key === 'ArrowLeft') {
+function move(direction) {
+  if (direction === 'left') {
     game.moveLeft();
   }
 
-  if (keyEvent.key === 'ArrowRight') {
+  if (direction === 'right') {
     game.moveRight();
   }
 
-  if (keyEvent.key === 'ArrowUp') {
+  if (direction === 'up') {
     game.moveUp();
   }
 
-  if (keyEvent.key === 'ArrowDown') {
+  if (direction === 'down') {
     game.moveDown();
   }
 
   render();
+}
+
+document.addEventListener('keydown', keyEvent => {
+  const direction = KEY_DIRECTIONS[keyEvent.key];
+
+  if (!direction) {
+    return;
+  }
+
+  keyEvent.preventDefault();
+  move(direction);
+});
+
+gameField.addEventListener(
+  'touchstart',
+  touchEvent => {
+    const touch = touchEvent.changedTouches[0];
+
+    touchStartX = touch.clientX;
+    touchStartY = touch.clientY;
+  },
+  { passive: true },
+);
+
+gameField.addEventListener('touchend', touchEvent => {
+  const touch = touchEvent.changedTouches[0];
+  const deltaX = touch.clientX - touchStartX;
+  const deltaY = touch.clientY - touchStartY;
+
+  if (Math.max(Math.abs(deltaX), Math.abs(deltaY)) < SWIPE_THRESHOLD) {
+    return;
+  }
+
+  if (Math.abs(deltaX) > Math.abs(deltaY)) {
+    move(deltaX > 0 ? 'right' : 'left');
+  } else {
+    move(deltaY > 0 ? 'down' : 'up');
+  }
 });
